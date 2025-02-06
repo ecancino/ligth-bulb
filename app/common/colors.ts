@@ -1,27 +1,3 @@
-export const colors = [
-  "#CD5C5C",
-  "#d67ab1",
-  "#0000FF",
-  "#FA8072",
-  "#E9967A",
-  "#FFA07A",
-  "#808080",
-  "#FF0000",
-  "#800000",
-  "#FFFF00",
-  "#808000",
-  "#00FF00",
-  "#008000",
-  "#00FFFF",
-  "#F08080",
-  "#008080",
-  "#000080",
-  "#FF00FF",
-  "#800080",
-  "#a8dcd9",
-  "#a2d67a",
-];
-
 export function lighten(color = "#004488", opacity = 1) {
   // Convert to color channels
   const num = parseInt(color.slice(1), 16);
@@ -47,4 +23,8 @@ export function lighten(color = "#004488", opacity = 1) {
       .toString(16)
       .slice(1)
   );
+}
+
+export function randomHexColor() {
+  return "#" + Math.floor(Math.random() * 16777215).toString(16);
 }

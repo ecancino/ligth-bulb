@@ -1,10 +1,11 @@
-import { useState } from "react";
 import type { MetaFunction } from "@remix-run/node";
 
-import LightBulb from "~/components/LightBulb";
+import { useLightBulb } from "~/machines/lightbulb";
+
+import LightBulb from "~/components/LightBulb/LightBulb";
 import Button from "~/components/Button/Button";
 
-import { colors } from "~/common/colors";
+import { app, lightBulb, controls } from "~/styles/index.css";
 
 export const meta: MetaFunction = () => {
   return [
@@ -13,36 +14,50 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-const lightBulbSize = "500px";
-
 export default function Index() {
-  const [lightColor, setLightColor] = useState("#2F71A8");
+  const [snapshot, send] = useLightBulb();
+
+  // console.log(snapshot.machine.states[snapshot.value]);
 
   return (
-    <main style={{ display: "flex", justifyContent: "center" }}>
-      <ul
-        style={{
-          width: "60em",
-          display: "flex",
-          flexFlow: "row wrap",
-          justifyContent: "space-between",
-        }}
-      >
-        {colors.map((color) => (
-          <li key={color} style={{ display: "block" }}>
-            <Button
-              disabled={lightColor === color}
-              onClick={() => setLightColor(color)}
-            >
-              {color.toLocaleUpperCase()}
-            </Button>
-          </li>
-        ))}
-      </ul>
+    <>
+      <main className={app}>
+        <section className={controls}>
+          {!snapshot.matches("broken") && (
+            <Button onClick={() => send({ type: "TOGGLE" })}>Toggle</Button>
+          )}
 
-      <section className="light-bulb" style={{ width: lightBulbSize }}>
-        <LightBulb bulbColor={lightColor} />
-      </section>
-    </main>
+          {snapshot.matches("broken") && (
+            <Button onClick={() => send({ type: "REPLACE" })}>Replace</Button>
+          )}
+
+          {snapshot.matches("lit") && (
+            <>
+              <Button onClick={() => send({ type: "CHANGE_COLOR" })}>
+                Change color
+              </Button>
+
+              <Button
+                disabled={snapshot.context.color === "#FF0000"}
+                onClick={() => send({ type: "CHANGE_COLOR", color: "#FF0000" })}
+              >
+                Make it red
+              </Button>
+            </>
+          )}
+
+          {!snapshot.matches("broken") && (
+            <Button onClick={() => send({ type: "BREAK" })}>Break</Button>
+          )}
+        </section>
+
+        <section className={lightBulb}>
+          <LightBulb
+            bulbColor={snapshot.context.color}
+            broken={snapshot.matches("broken")}
+          />
+        </section>
+      </main>
+    </>
   );
 }

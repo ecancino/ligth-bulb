@@ -1,27 +1,20 @@
+import { useMachine } from "@xstate/react";
 import { assign, createMachine } from "xstate";
+import { randomHexColor } from "~/common/colors";
+
+const unlitColor = "#FFFFFF";
 
 const id = "lightBulb";
 const initial = "unlit";
 const context = {
   location: "kitchen",
-  color: "transparent",
+  color: unlitColor,
   replacement: null,
-} as const;
+};
 
 const LIT = "lit";
 const UNLIT = "unlit";
 const BROKEN = "broken";
-
-const randomHexColor = () =>
-  "#" + Math.floor(Math.random() * 16777215).toString(16);
-
-const buyANewBulb = async () => {
-  const replacement = await fetch("https://fakestoreapi.com/products/1").then(
-    (response) => response.json()
-  );
-  console.log(replacement);
-  return assign({ replacement: "done" });
-};
 
 const lit = {
   on: {
@@ -30,10 +23,10 @@ const lit = {
     },
     TOGGLE: {
       target: UNLIT,
-      actions: ["setTransparent"],
+      actions: [{ type: "setTransparent" }],
     },
     CHANGE_COLOR: {
-      actions: ["changeColor"],
+      actions: [{ type: "changeColor" }],
     },
   },
 };
@@ -45,60 +38,16 @@ const unlit = {
     },
     TOGGLE: {
       target: LIT,
-      actions: ["changeColor"],
+      actions: [{ type: "changeColor" }],
     },
   },
 };
 
 const broken = {
-  states: {
-    // id: 'broken',
-    // initial: 'idle',
-    // context: {},
-    // idle: {
-    //   on: {
-    //     FETCH: '#broken.REPLACE',
-    //   },
-    // },
-    // loading: {
-    //   invoke: {
-    //     src: 'fetchUser',
-    //     input: ({ context }) => ({ name: context.name }),
-    //     onDone: {
-    //       target: 'success',
-    //       actions: assign({
-    //         data: ({ event }) => event.output,
-    //       }),
-    //     },
-    //     onError: 'failure',
-    //   },
-    // },
-    // success: {},
-    // failure: {
-    //   after: {
-    //     1000: 'loading',
-    //   },
-    //   on: {
-    //     RETRY: 'loading',
-    //   },
-    // },
-  },
   on: {
     REPLACE: {
       target: "unlit",
     },
-  },
-};
-
-const config = {
-  actions: {
-    buyANewBulb,
-    changeColor: assign({
-      color: () => randomHexColor(),
-    }),
-    setTransparent: assign({
-      color: "transparent",
-    }),
   },
 };
 
@@ -111,5 +60,15 @@ export const machine = createMachine({
     broken,
     lit,
   },
+}).provide({
+  actions: {
+    changeColor: assign({
+      color: ({ event }) => event?.color ?? randomHexColor(),
+    }),
+    setTransparent: assign({
+      color: unlitColor,
+    }),
+  },
 });
-// .withConfig(config);
+
+export const useLightBulb = () => useMachine(machine);
